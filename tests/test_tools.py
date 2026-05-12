@@ -33,6 +33,7 @@ class ToolBoundaryReadResourcesTests(unittest.TestCase):
         events = self.boundary.audit_log()
         self.assertEqual(len(events), 1)
         self.assertEqual(events[0].action, "resource_registered_nodes")
+        # Audit details are normalized to strings for serialization-friendly payloads.
         self.assertEqual(events[0].details["node_count"], "4")
 
     def test_resource_registered_nodes_has_no_network_side_effects(self) -> None:

@@ -16,6 +16,8 @@ from typing import Dict, List, Optional
 from .models import AuditEvent, BatchRelayOutcome, BeaconPacket, RelayOutcome
 from .network import DecentralizedRescueBeaconNetwork
 
+NO_PACKET_ID = "N/A"
+
 
 class BeaconNetworkToolBoundary:
     """MCP-style interface over a DecentralizedRescueBeaconNetwork.
@@ -151,7 +153,7 @@ class BeaconNetworkToolBoundary:
         self,
         action: str,
         details: Optional[Dict[str, str]] = None,
-        packet_id: str = "N/A",
+        packet_id: str = NO_PACKET_ID,
     ) -> None:
         self._boundary_audit.append(
             AuditEvent(
