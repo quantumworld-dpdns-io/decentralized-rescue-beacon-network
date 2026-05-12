@@ -15,6 +15,7 @@ __pycache__/
 *.class
 
 # Go
+backend/go/server
 backend/go/beacon-go
 *.exe
 
@@ -24,6 +25,9 @@ backend/rust/target/
 # Dependencies
 node_modules/
 vendor/
+
+# Python virtual env
+backend/python/venv/
 
 # Next.js
 web/.next/
