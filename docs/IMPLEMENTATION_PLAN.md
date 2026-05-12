@@ -28,33 +28,45 @@
 - Keep algorithm labeling explicit to support crypto agility and migration.
 - Avoid custom cryptographic protocols; keep a replaceable signer abstraction.
 
-## Planned Work Breakdown
+## Expanded Work Breakdown
 
-1. **Domain model foundation**
-   - Define packet and relay outcome structures.
-   - Define deterministic packet identity and metadata fields.
-2. **Core network relay engine**
-   - Build in-memory node graph registration and bidirectional links.
-   - Implement bounded multi-hop route discovery.
-   - Add target-specific delivery filtering.
-3. **Safety controls**
-   - Add packet de-duplication with TTL semantics.
-   - Add signer abstraction and packet signature verification.
-   - Add basic relay metrics for operational observability.
-4. **Quality and developer workflow**
-   - Add unit tests for routing, edge cases, de-duplication, and signature validation.
-   - Add CI workflow commands to run the test suite and source compilation checks.
-   - Update README with architecture and local usage instructions.
+1. **Domain model and boundary contracts**
+   - Keep immutable packet and outcome structures.
+   - Add explicit batch outcome and audit event models for deterministic orchestration and observability.
+2. **Relay engine determinism and safety**
+   - Keep bounded multi-hop delivery with deterministic route traversal order.
+   - Enforce input validation boundaries before relay execution.
+   - Preserve Redis-style namespace + TTL de-duplication behavior.
+3. **Reference-driven workflow concepts**
+   - Apply LangGraph/CrewAI orchestrator-worker concept with deterministic batch packet merge behavior.
+   - Apply MCP-style auditable action traces through structured event records.
+   - Keep signer abstraction and algorithm labeling for crypto agility.
+4. **MCP-style tool boundary (`BeaconNetworkToolBoundary`)**
+   - Expose read-only topology resources (`resource_registered_nodes`, `resource_node_neighbors`, `resource_reachable_nodes`) with no side effects on network state.
+   - Expose write-capable packet submission tools (`tool_submit_packet`, `tool_submit_packets`) with observable side effects.
+   - Maintain a separate, boundary-level audit log for every resource and tool call, independent of the network audit log.
+5. **Quality and delivery gates**
+   - Extend tests for validation boundaries, deterministic route selection, batch orchestration, and audit traces.
+   - Add dedicated test file for tool boundary behavior: read/write separation, audit event correctness, no-side-effect guarantees for resource calls.
+   - Maintain CI checks: unit tests + source compilation.
+   - Keep user-facing docs in sync with implementation behavior.
 
 ## Test Plan
 
 ### Unit tests
 - Verify multi-hop routing returns shortest discovered path and expected recipients.
+- Verify deterministic path selection when multiple equal-hop routes exist.
 - Verify target filtering relays only to requested reachable nodes.
 - Verify duplicate packet submissions are rejected within TTL window.
 - Verify invalid/tampered packet signatures are rejected.
+- Verify invalid packet boundary checks reject malformed packets.
+- Verify batch submissions produce deterministic packet ordering and merged summary counts.
+- Verify audit log records accepted and dropped submission events with structured reasons.
 - Verify TTL store expiration removes stale keys.
 - Verify relay metrics reflect accepted and rejected packet attempts.
+- **Tool boundary – read resources:** verify `resource_registered_nodes`, `resource_node_neighbors`, and `resource_reachable_nodes` return correct data without altering network state, dedupe slots, or metrics.
+- **Tool boundary – write tools:** verify `tool_submit_packet` and `tool_submit_packets` deliver packets, update metrics, and emit boundary-level pre/post audit events.
+- **Tool boundary – audit log:** verify boundary audit log is independent of the network audit log, supports limit slicing, and records timestamps.
 
 ### CI checks
 - Run `python -m unittest discover -s tests -p 'test_*.py'`.
@@ -62,7 +74,13 @@
 
 ## Delivery Scope Implemented in This Change
 
-- A working in-memory decentralized relay baseline.
-- A replaceable signer and TTL cache abstraction.
-- Test coverage for routing and safety controls.
-- CI and README updates to support ongoing iteration.
+- Existing in-memory decentralized relay baseline with signer + TTL store abstractions.
+- Expanded boundary model with `BatchRelayOutcome` and `AuditEvent`.
+- Deterministic route traversal and deterministic batch merge ordering.
+- Packet validation boundary checks before relay operations.
+- Structured audit log for submission lifecycle observability.
+- **`BeaconNetworkToolBoundary`** – explicit MCP-style read/write separation:
+  - Read-only topology resources with no network side effects.
+  - Write-capable packet submission tools with auditable pre/post events.
+  - Separate boundary-level audit log independent of the network audit log.
+- Expanded tests covering deterministic routing, validation boundaries, batch behavior, audit tracing, and full tool boundary behavior.

@@ -27,3 +27,27 @@ class RelayOutcome:
     delivered_nodes: List[str]
     routes: Dict[str, List[str]]
     dropped_reason: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class BatchRelayOutcome:
+    """Deterministically merged relay outcomes for a packet batch."""
+
+    outcomes_by_packet_id: Dict[str, RelayOutcome]
+    ordered_packet_ids: List[str]
+    delivered_packet_count: int
+    dropped_packet_count: int
+
+
+@dataclass(frozen=True)
+class AuditEvent:
+    """Structured network audit event for observable relay operations.
+
+    `details` uses string values to keep event payloads serialization-friendly
+    and consistent across text-based sinks (logs, JSON lines, and metrics tags).
+    """
+
+    timestamp: datetime
+    packet_id: str
+    action: str
+    details: Dict[str, str]
