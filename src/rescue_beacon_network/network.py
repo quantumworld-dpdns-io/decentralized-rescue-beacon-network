@@ -151,6 +151,12 @@ class DecentralizedRescueBeaconNetwork:
 
     @staticmethod
     def _is_valid_packet(packet: BeaconPacket) -> bool:
+        """Validate packet boundary inputs before relay processing.
+
+        A packet is valid when:
+        - origin_node_id is not blank/whitespace
+        - max_hops is a positive integer (> 0)
+        """
         if not packet.origin_node_id.strip():
             return False
         if packet.max_hops <= 0:
