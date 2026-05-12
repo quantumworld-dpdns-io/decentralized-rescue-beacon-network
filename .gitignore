@@ -14,9 +14,20 @@ __pycache__/
 *.pyc
 *.class
 
+# Go
+backend/go/beacon-go
+*.exe
+
+# Rust
+backend/rust/target/
+
 # Dependencies
 node_modules/
 vendor/
+
+# Next.js
+web/.next/
+web/out/
 
 # Environment
 .env
