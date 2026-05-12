@@ -13,6 +13,7 @@ This baseline implementation now includes:
 - Redis-style TTL de-duplication primitives.
 - Deterministic route traversal and deterministic batch packet orchestration.
 - Structured relay audit events for operational observability.
+- **MCP-style tool boundary** – explicit read-only topology resources and write-capable packet submission tools with separate audit trails.
 - Unit tests and CI execution commands.
 
 ## Project Structure
@@ -38,12 +39,14 @@ python -m unittest discover -s tests -p 'test_*.py'
 
 ```python
 from src.rescue_beacon_network import BeaconPacket, DecentralizedRescueBeaconNetwork, HMACPacketSigner
+from src.rescue_beacon_network import BeaconNetworkToolBoundary
 
 signer = HMACPacketSigner(secret="rescue-secret")
 network = DecentralizedRescueBeaconNetwork(signer=signer)
 network.connect_nodes("A", "B")
 network.connect_nodes("B", "C")
 
+# Direct network usage
 packet = signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "medical"}, max_hops=2))
 outcome = network.submit_distress_packet(packet)
 print(outcome.delivered_nodes)  # ['B', 'C']
@@ -51,6 +54,20 @@ print(outcome.delivered_nodes)  # ['B', 'C']
 batch = network.submit_distress_packets([packet])
 print(batch.ordered_packet_ids)  # deterministic packet id order
 print(network.audit_log(limit=2))  # latest structured relay events
+
+# MCP-style tool boundary
+boundary = BeaconNetworkToolBoundary(network)
+
+# Read-only topology resources (no side effects)
+print(boundary.resource_registered_nodes())          # ['A', 'B', 'C']
+print(boundary.resource_node_neighbors("B"))         # ['A', 'C']
+print(boundary.resource_reachable_nodes("A", max_hops=2))  # ['B', 'C']
+
+# Write-capable packet submission tools
+packet2 = signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "fire"}, max_hops=1))
+outcome2 = boundary.tool_submit_packet(packet2)
+print(outcome2.delivered_nodes)  # ['B']
+print(boundary.audit_log(limit=2))  # boundary-level audit events
 ```
 
 ## Contributing

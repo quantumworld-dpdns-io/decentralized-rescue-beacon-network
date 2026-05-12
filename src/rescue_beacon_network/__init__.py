@@ -4,6 +4,7 @@ from .cache import InMemoryTTLStore
 from .models import AuditEvent, BatchRelayOutcome, BeaconPacket, RelayOutcome
 from .network import DecentralizedRescueBeaconNetwork
 from .security import HMACPacketSigner
+from .tools import BeaconNetworkToolBoundary
 
 __all__ = [
     "BeaconPacket",
@@ -13,4 +14,5 @@ __all__ = [
     "DecentralizedRescueBeaconNetwork",
     "InMemoryTTLStore",
     "HMACPacketSigner",
+    "BeaconNetworkToolBoundary",
 ]

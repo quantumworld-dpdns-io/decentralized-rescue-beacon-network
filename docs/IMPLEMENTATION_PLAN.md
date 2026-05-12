@@ -41,8 +41,13 @@
    - Apply LangGraph/CrewAI orchestrator-worker concept with deterministic batch packet merge behavior.
    - Apply MCP-style auditable action traces through structured event records.
    - Keep signer abstraction and algorithm labeling for crypto agility.
-4. **Quality and delivery gates**
+4. **MCP-style tool boundary (`BeaconNetworkToolBoundary`)**
+   - Expose read-only topology resources (`resource_registered_nodes`, `resource_node_neighbors`, `resource_reachable_nodes`) with no side effects on network state.
+   - Expose write-capable packet submission tools (`tool_submit_packet`, `tool_submit_packets`) with observable side effects.
+   - Maintain a separate, boundary-level audit log for every resource and tool call, independent of the network audit log.
+5. **Quality and delivery gates**
    - Extend tests for validation boundaries, deterministic route selection, batch orchestration, and audit traces.
+   - Add dedicated test file for tool boundary behavior: read/write separation, audit event correctness, no-side-effect guarantees for resource calls.
    - Maintain CI checks: unit tests + source compilation.
    - Keep user-facing docs in sync with implementation behavior.
 
@@ -59,6 +64,9 @@
 - Verify audit log records accepted and dropped submission events with structured reasons.
 - Verify TTL store expiration removes stale keys.
 - Verify relay metrics reflect accepted and rejected packet attempts.
+- **Tool boundary – read resources:** verify `resource_registered_nodes`, `resource_node_neighbors`, and `resource_reachable_nodes` return correct data without altering network state, dedupe slots, or metrics.
+- **Tool boundary – write tools:** verify `tool_submit_packet` and `tool_submit_packets` deliver packets, update metrics, and emit boundary-level pre/post audit events.
+- **Tool boundary – audit log:** verify boundary audit log is independent of the network audit log, supports limit slicing, and records timestamps.
 
 ### CI checks
 - Run `python -m unittest discover -s tests -p 'test_*.py'`.
@@ -71,4 +79,8 @@
 - Deterministic route traversal and deterministic batch merge ordering.
 - Packet validation boundary checks before relay operations.
 - Structured audit log for submission lifecycle observability.
-- Expanded tests covering deterministic routing, validation boundaries, batch behavior, and audit tracing.
+- **`BeaconNetworkToolBoundary`** – explicit MCP-style read/write separation:
+  - Read-only topology resources with no network side effects.
+  - Write-capable packet submission tools with auditable pre/post events.
+  - Separate boundary-level audit log independent of the network audit log.
+- Expanded tests covering deterministic routing, validation boundaries, batch behavior, audit tracing, and full tool boundary behavior.

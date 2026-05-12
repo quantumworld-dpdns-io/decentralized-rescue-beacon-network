@@ -127,9 +127,11 @@ class DecentralizedRescueBeaconNetwork:
         )
 
     def audit_log(self, limit: Optional[int] = None) -> List[AuditEvent]:
+        if limit is not None and limit <= 0:
+            return []
         if limit is None:
             return list(self._audit_log)
-        return list(self._audit_log[-max(limit, 0) :])
+        return list(self._audit_log[-limit:])
 
     def _find_routes(self, origin_node_id: str, max_hops: int) -> Dict[str, List[str]]:
         routes: Dict[str, List[str]] = {origin_node_id: [origin_node_id]}
