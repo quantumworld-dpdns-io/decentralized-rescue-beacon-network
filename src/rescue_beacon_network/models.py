@@ -41,7 +41,11 @@ class BatchRelayOutcome:
 
 @dataclass(frozen=True)
 class AuditEvent:
-    """Structured network audit event for observable relay operations."""
+    """Structured network audit event for observable relay operations.
+
+    `details` uses string values to keep event payloads serialization-friendly
+    and consistent across text-based sinks (logs, JSON lines, and metrics tags).
+    """
 
     timestamp: datetime
     packet_id: str

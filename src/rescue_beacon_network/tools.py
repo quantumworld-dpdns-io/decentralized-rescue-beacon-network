@@ -94,6 +94,7 @@ class BeaconNetworkToolBoundary:
                 "origin_node_id": packet.origin_node_id,
                 "target_nodes": ",".join(target_nodes) if target_nodes else "",
             },
+            packet_id=packet.packet_id,
         )
         outcome = self._network.submit_distress_packet(packet, target_nodes=target_nodes)
         self._emit(
@@ -103,6 +104,7 @@ class BeaconNetworkToolBoundary:
                 "dropped_reason": outcome.dropped_reason or "",
                 "delivered_count": str(len(outcome.delivered_nodes)),
             },
+            packet_id=packet.packet_id,
         )
         return outcome
 
@@ -145,11 +147,16 @@ class BeaconNetworkToolBoundary:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _emit(self, action: str, details: Optional[Dict[str, str]] = None) -> None:
+    def _emit(
+        self,
+        action: str,
+        details: Optional[Dict[str, str]] = None,
+        packet_id: str = "N/A",
+    ) -> None:
         self._boundary_audit.append(
             AuditEvent(
                 timestamp=datetime.now(timezone.utc),
-                packet_id="",
+                packet_id=packet_id,
                 action=action,
                 details=details or {},
             )
