@@ -138,7 +138,9 @@ class RescueBeaconNetworkTests(unittest.TestCase):
         self.network.submit_distress_packet(dropped_packet)
 
         events = self.network.audit_log()
-        expected_event_count = 4
+        packet_count = 2
+        events_per_packet = 2
+        expected_event_count = packet_count * events_per_packet
         self.assertEqual(len(events), expected_event_count)
         self.assertEqual(events[-1].action, "submit_dropped")
         self.assertEqual(events[-1].details["reason"], "invalid_packet")
