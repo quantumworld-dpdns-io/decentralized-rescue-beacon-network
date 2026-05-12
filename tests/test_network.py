@@ -90,6 +90,57 @@ class RescueBeaconNetworkTests(unittest.TestCase):
         self.assertEqual(metrics["delivered"], 1)
         self.assertEqual(metrics["dropped_duplicate"], 1)
         self.assertEqual(metrics["dropped_invalid_signature"], 1)
+        self.assertEqual(metrics["dropped_invalid_packet"], 0)
+
+    def test_invalid_packet_is_rejected(self) -> None:
+        packet = self.signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "medical"}, max_hops=0))
+
+        outcome = self.network.submit_distress_packet(packet)
+
+        self.assertEqual(outcome.dropped_reason, "invalid_packet")
+        self.assertEqual(self.network.metrics()["dropped_invalid_packet"], 1)
+
+    def test_deterministic_route_selection_with_multiple_equal_paths(self) -> None:
+        network = DecentralizedRescueBeaconNetwork(signer=self.signer)
+        network.connect_nodes("A", "C")
+        network.connect_nodes("A", "B")
+        network.connect_nodes("B", "D")
+        network.connect_nodes("C", "D")
+        packet = self.signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "medical"}, max_hops=2))
+
+        outcome = network.submit_distress_packet(packet, target_nodes=["D"])
+
+        self.assertEqual(outcome.routes["D"], ["A", "B", "D"])
+
+    def test_batch_submission_is_deterministic_and_summarized(self) -> None:
+        packet_b = self.signer.sign(
+            BeaconPacket(origin_node_id="A", distress_payload={"type": "fire"}, max_hops=1, packet_id="b-packet")
+        )
+        packet_a = self.signer.sign(
+            BeaconPacket(origin_node_id="A", distress_payload={"type": "flood"}, max_hops=1, packet_id="a-packet")
+        )
+        packet_invalid = self.signer.sign(
+            BeaconPacket(origin_node_id="A", distress_payload={"type": "invalid"}, max_hops=0, packet_id="c-packet")
+        )
+
+        batch = self.network.submit_distress_packets([packet_b, packet_invalid, packet_a])
+
+        self.assertEqual(batch.ordered_packet_ids, ["a-packet", "b-packet", "c-packet"])
+        self.assertEqual(batch.delivered_packet_count, 2)
+        self.assertEqual(batch.dropped_packet_count, 1)
+        self.assertEqual(batch.outcomes_by_packet_id["c-packet"].dropped_reason, "invalid_packet")
+
+    def test_audit_log_captures_submit_events(self) -> None:
+        delivered_packet = self.signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "storm"}, max_hops=1))
+        dropped_packet = self.signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "storm"}, max_hops=0))
+
+        self.network.submit_distress_packet(delivered_packet)
+        self.network.submit_distress_packet(dropped_packet)
+
+        events = self.network.audit_log()
+        self.assertGreaterEqual(len(events), 4)
+        self.assertEqual(events[-1].action, "submit_dropped")
+        self.assertEqual(events[-1].details["reason"], "invalid_packet")
 
 
 if __name__ == "__main__":

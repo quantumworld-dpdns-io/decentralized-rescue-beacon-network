@@ -11,6 +11,8 @@ This baseline implementation now includes:
 - In-memory multi-hop distress packet relay engine.
 - Packet signing and verification boundary for crypto-agile security migration.
 - Redis-style TTL de-duplication primitives.
+- Deterministic route traversal and deterministic batch packet orchestration.
+- Structured relay audit events for operational observability.
 - Unit tests and CI execution commands.
 
 ## Project Structure
@@ -45,6 +47,10 @@ network.connect_nodes("B", "C")
 packet = signer.sign(BeaconPacket(origin_node_id="A", distress_payload={"type": "medical"}, max_hops=2))
 outcome = network.submit_distress_packet(packet)
 print(outcome.delivered_nodes)  # ['B', 'C']
+
+batch = network.submit_distress_packets([packet])
+print(batch.ordered_packet_ids)  # deterministic packet id order
+print(network.audit_log(limit=2))  # latest structured relay events
 ```
 
 ## Contributing
