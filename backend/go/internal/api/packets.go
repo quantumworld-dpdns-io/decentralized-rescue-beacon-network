@@ -105,20 +105,19 @@ func (h *Handler) SubmitPacket(w http.ResponseWriter, r *http.Request) {
 
 	outcome := h.buildOutcome(packetID, routeResp, req.TargetNodes)
 
+	h.db.IncrementMetric(r.Context(), "submitted")
+
 	if err := h.db.CreateAuditEvent(r.Context(), packetID, "submit_received", nil); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to record audit")
 		return
 	}
 
 	if outcome.DroppedReason != "" {
-		h.db.IncrementMetric(r.Context(), "submitted")
 		h.db.IncrementMetric(r.Context(), "dropped_unreachable")
 		h.recordDrop(r.Context(), packetID, outcome.DroppedReason)
 	} else {
 		h.db.IncrementMetricBy(r.Context(), "delivered", int64(len(outcome.DeliveredNodes)))
 	}
-
-	h.db.IncrementMetric(r.Context(), "submitted")
 
 	pkt := models.Packet{
 		PacketID:           packetID,
