@@ -1,7 +1,10 @@
 FROM golang:1.23-alpine AS builder
 
 WORKDIR /build
-COPY backend/go/ .
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
 RUN go build -o /app/beacon-go ./cmd/server
 
 FROM alpine:3.20

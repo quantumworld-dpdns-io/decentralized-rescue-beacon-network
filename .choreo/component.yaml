@@ -1,0 +1,10 @@
+schemaVersion: 1.2
+endpoints:
+  - name: beacon-python-core
+    displayName: Python Core Service
+    service:
+      basePath: /
+      port: 5000
+    type: REST
+    networkVisibilities:
+      - Project

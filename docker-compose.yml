@@ -32,8 +32,8 @@ services:
 
   rust-engine:
     build:
-      context: .
-      dockerfile: backend/rust/Dockerfile
+      context: ./backend/rust
+      dockerfile: Dockerfile
     environment:
       RUST_SERVICE_PORT: 9090
     ports:
@@ -44,8 +44,8 @@ services:
 
   go-api:
     build:
-      context: .
-      dockerfile: backend/go/Dockerfile
+      context: ./backend/go
+      dockerfile: Dockerfile
     environment:
       GO_SERVICE_PORT: 8080
       DATABASE_URL: postgres://beacon:beacon@postgres:5432/beacon_network?sslmode=disable

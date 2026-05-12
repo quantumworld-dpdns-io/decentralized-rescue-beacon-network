@@ -1,0 +1,10 @@
+schemaVersion: 1.2
+endpoints:
+  - name: beacon-rust-engine
+    displayName: Rust Routing Engine
+    service:
+      basePath: /
+      port: 9090
+    type: REST
+    networkVisibilities:
+      - Project

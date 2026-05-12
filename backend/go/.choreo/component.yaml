@@ -1,0 +1,10 @@
+schemaVersion: 1.2
+endpoints:
+  - name: beacon-go-api
+    displayName: Go API Gateway
+    service:
+      basePath: /
+      port: 8080
+    type: REST
+    networkVisibilities:
+      - Public
