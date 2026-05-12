@@ -9,7 +9,10 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
+RUN groupadd -r appgroup && useradd -r -g appgroup -d /app -s /sbin/nologin -u 10014 appuser
 WORKDIR /app
 COPY --from=builder /build/target/release/beacon-rust /app/beacon-rust
+RUN chown appuser:appgroup /app
+USER 10014
 EXPOSE 9090
 CMD ["/app/beacon-rust"]
